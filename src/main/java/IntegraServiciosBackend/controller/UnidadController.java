@@ -1,47 +1,83 @@
 package IntegraServiciosBackend.controller;
 
+import IntegraServiciosBackend.dto.register.UnidadRegisterDTO;
+import IntegraServiciosBackend.dto.modification.UnidadModificationDTO;
+import IntegraServiciosBackend.dto.exit.UnidadExitDTO;
+import IntegraServiciosBackend.exceptions.BadRequestException;
+import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
+import IntegraServiciosBackend.service.IUnidadService;
+import IntegraServiciosBackend.utils.JsonPrinter;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import IntegraServiciosBackend.entity.Unidad;
-import IntegraServiciosBackend.repository.UnidadRepository;
-
 @RestController
-@RequestMapping("/api/unidades")
-@CrossOrigin(origins = "*") // permite probar desde el navegador o Postman
+@RequestMapping("public/unidad")
+@AllArgsConstructor
 public class UnidadController {
 
-private final UnidadRepository unidadRepository;
+    private final Logger LOGGER = LoggerFactory.getLogger(UnidadController.class);
+    private final IUnidadService unidadService;
 
-public UnidadController(UnidadRepository unidadRepository) {
-    this.unidadRepository = unidadRepository;
-}
+    /**
+     * Registrar una nueva unidad
+     */
+    @PostMapping
+    public ResponseEntity<UnidadExitDTO> registrarUnidad(@RequestBody UnidadRegisterDTO UnidadRegisterDTO)
+            throws BadRequestException {
+        LOGGER.info("Solicitud de registro recibida: {}", JsonPrinter.toString(UnidadRegisterDTO));
+        UnidadExitDTO unidadCreada = unidadService.registrarUnidad(UnidadRegisterDTO);
+        LOGGER.info("Unidad registrada correctamente: {}", JsonPrinter.toString(unidadCreada));
+        return ResponseEntity.ok(unidadCreada);
+    }
 
-// Obtener todas las unidades
-@GetMapping
-public List<Unidad> getAllUnidades() {
-    return unidadRepository.findAll();
-}
+    /**
+     * Listar todas las unidades
+     */
+    @GetMapping
+    public ResponseEntity<List<UnidadExitDTO>> listarUnidades() {
+        List<UnidadExitDTO> unidades = unidadService.listarUnidades();
+        LOGGER.info("Se retornaron {} unidades", unidades.size());
+        return ResponseEntity.ok(unidades);
+    }
 
-// Crear una nueva unidad
-@PostMapping
-public Unidad createUnidad(@RequestBody Unidad unidad) {
-    return unidadRepository.save(unidad);
-}
+    /**
+     * Buscar una unidad por su ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<UnidadExitDTO> buscarPorId(@PathVariable UUID id)
+            throws ResourceNotFoundException {
+        LOGGER.info("Buscando unidad con id: {}", id);
+        UnidadExitDTO unidad = unidadService.buscarUnidadPorId(id);
+        return ResponseEntity.ok(unidad);
+    }
 
-// Buscar una unidad por ID
-@GetMapping("/{id}")
-public Unidad getUnidadById(@PathVariable("id") UUID id) {
-    return unidadRepository.findById(id).orElse(null);
-}
+    /**
+     * Actualizar una unidad existente
+     */
+    @PutMapping
+    public ResponseEntity<UnidadExitDTO> actualizarUnidad(@RequestBody UnidadModificationDTO UnidadModificationDTO)
+            throws ResourceNotFoundException, BadRequestException {
+        LOGGER.info("Solicitud de actualización recibida: {}", JsonPrinter.toString(UnidadModificationDTO));
+        UnidadExitDTO actualizada = unidadService.actualizarUnidad(UnidadModificationDTO);
+        LOGGER.info("Unidad actualizada correctamente: {}", JsonPrinter.toString(actualizada));
+        return ResponseEntity.ok(actualizada);
+    }
 
-
+    /**
+     * Eliminar una unidad por ID
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<UnidadExitDTO> eliminarUnidad(@PathVariable UUID id)
+            throws ResourceNotFoundException {
+        LOGGER.warn("Solicitud de eliminación para unidad con id: {}", id);
+        UnidadExitDTO eliminada = unidadService.eliminarUnidad(id);
+        LOGGER.warn("Unidad eliminada correctamente: {}", JsonPrinter.toString(eliminada));
+        return ResponseEntity.ok(eliminada);
+    }
 }

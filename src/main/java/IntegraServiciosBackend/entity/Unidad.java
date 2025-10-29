@@ -1,12 +1,21 @@
 package IntegraServiciosBackend.entity;
 
-import jakarta.persistence.*;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import org.hibernate.annotations.Type;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -17,22 +26,19 @@ import java.util.UUID;
 public class Unidad {
 
     @Id
-    @GeneratedValue
-    @Column(name = "unidad_id")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "unidad_id", columnDefinition = "UUID")
+    private UUID unidadId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nombre;
 
     private String descripcion;
 
-    // Guardamos el JSONB como texto; luego se puede mapear con @Convert a un objeto
     @Column(name = "horario_global", columnDefinition = "jsonb")
-    private String horarioGlobal;
+    @Type(JsonType.class)
+    private Map<String, Object> horarioGlobal;
 
-    @Column(name = "tiempo_minimo_minutos")
+    @Column(name = "tiempo_minimo_minutos", nullable = false)
     private int tiempoMinimoMinutos;
-
-    @Column(name = "creado_en")
-    private java.time.OffsetDateTime creadoEn;
 }
