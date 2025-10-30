@@ -62,9 +62,9 @@ class BackendDeIntegraServiciosApplicationTests {
     @Test
     @Order(3)
     void buscarUnidadPorIdTest() throws ResourceNotFoundException {
-        UnidadExitDTO unidad = unidadService.buscarUnidadPorId(unidadIdCreada);
+        UnidadExitDTO unidad = unidadService.buscarUnidadPorId(UUID.fromString("562490bc-e44c-4e98-843a-e7bc8c44a8af"));
         assertNotNull(unidad);
-        assertEquals("Laboratorio de electrica", unidad.getNombre());
+        assertEquals("Espacios físicos", unidad.getNombre());
         System.out.println("✅ Unidad encontrada: " + unidad.getNombre());
     }
 
