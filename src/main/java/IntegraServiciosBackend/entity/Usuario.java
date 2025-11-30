@@ -1,38 +1,44 @@
 package IntegraServiciosBackend.entity;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.*;
-import lombok.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "usuario", schema = "integra")
+@Table(name = "usuario")
 public class Usuario {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "usuario_id", columnDefinition = "UUID")
-    private UUID usuarioId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String documento;
+    @Column(length = 50)
+    private String fullname;
 
-    @Column(name = "nombre_completo", nullable = false)
-    private String nombreCompleto;
+    @NotBlank
+    private String contraseña;
 
-    @Column(nullable = false, unique = true)
+    @Email
+    @NotBlank
+    @Size(max=80)
     private String email;
 
-    private String telefono;
+    @Column(length = 50)
+    private int cedula;
+    private LocalDateTime fechaRegistro;
 
-    @Column(name = "tipo_usuario", nullable = false)
-    private String tipoUsuario; // ('externo', 'empleado', 'admin')
-
-    @Column(name = "creado_en", columnDefinition = "timestamp default now()")
-    private LocalDateTime creadoEn;
-
+    private int rol;
 }
