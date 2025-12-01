@@ -1,34 +1,38 @@
 package IntegraServiciosBackend.entity;
 
-import java.util.Map;
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.*;
-import lombok.*;
-import com.vladmihalcea.hibernate.type.json.JsonType;
-import org.hibernate.annotations.Type;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "unidad", schema = "integra")
+@Table(name = "unidad")
 public class Unidad {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "unidad_id", columnDefinition = "UUID")
-    private UUID unidadId;
-
-    @Column(nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String nombre;
+    private String tipo;
+    private int tiempoMinimo;
+    private int tiempoMaximo;
+    private String horaInicio;
+    private String horaFinal;
 
-    private String descripcion;
-
-    @Column(name = "horario_global", columnDefinition = "jsonb")
-    @Type(JsonType.class)
-    private Map<String, Object> horarioGlobal;
-
-    @Column(name = "tiempo_minimo_minutos", nullable = false)
-    private int tiempoMinimoMinutos;
+    @ManyToMany
+    @JoinTable(
+            name = "dias_disponibles_unidad",
+            joinColumns = @JoinColumn(name = "unidad_id"),
+            inverseJoinColumns = @JoinColumn(name = "dia_id")
+    )
+    private List<Dia> diasDisponibles;
 }

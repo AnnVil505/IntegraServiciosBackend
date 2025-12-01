@@ -7,17 +7,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class UnidadExitDTO {
+public class HorarioDisponibleRecursoExitDTO {
+
     private Long id;
-    private String nombre;
-    private String tipo;
-    private int tiempoMinimo;
-    private int tiempoMaximo;
+    private Dia dia;
     private String horaInicio;
-    private String horaFinal;
-    private List<Dia> diasDisponibles;
+    private String horaFin;
 }

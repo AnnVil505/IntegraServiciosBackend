@@ -4,6 +4,7 @@ import IntegraServiciosBackend.dto.register.UnidadRegisterDTO;
 import IntegraServiciosBackend.dto.modification.UnidadModificationDTO;
 import IntegraServiciosBackend.dto.exit.UnidadExitDTO;
 import IntegraServiciosBackend.entity.Unidad;
+import IntegraServiciosBackend.entity.Dia;
 import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
 import IntegraServiciosBackend.repository.UnidadRepository;
@@ -18,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter
@@ -30,81 +31,96 @@ public class UnidadService implements IUnidadService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UnidadService.class);
     private UnidadRepository unidadRepository;
+    private DiaRepository diaRepository;
     private ModelMapper modelMapper;
 
     @Override
     public UnidadExitDTO registrarUnidad(UnidadRegisterDTO unidad) throws BadRequestException {
-        if (unidadRepository.findByNombre(unidad.getNombre()).isPresent()) {
-            throw new BadRequestException("Ya existe una unidad con ese nombre");
-        }
+        // Convertir DTO a entidad
+        Unidad unidadEntidad = modelMapper.map(unidad,Unidad.class);
 
-        Unidad entidad = modelMapper.map(unidad, Unidad.class);
-        Unidad guardada = unidadRepository.save(entidad);
+        // Obtener los días de la base de datos
+        List<Dia> diasDisponibles = (List<Dia>) diaRepository.findAllById(unidad.getDiasDisponibles());
 
-        LOGGER.info("Unidad registrada: {}", JsonPrinter.toString(guardada));
-        return modelMapper.map(guardada, UnidadExitDTO.class);
+        unidadEntidad.setDiasDisponibles(diasDisponibles);
+
+        // Guardar la unidad
+        return modelMapper.map(unidadRepository.save(unidadEntidad),UnidadExitDTO.class);
     }
 
     @Override
     public List<UnidadExitDTO> listarUnidades() {
-        List<UnidadExitDTO> unidades = unidadRepository.findAll()
-                .stream()
+        List<UnidadExitDTO> unidades = unidadRepository.findAll().stream()
                 .map(u -> modelMapper.map(u, UnidadExitDTO.class))
                 .collect(Collectors.toList());
 
-        LOGGER.info("Listando {} unidades registradas", unidades.size());
         return unidades;
     }
 
     @Override
-    public UnidadExitDTO buscarUnidadPorId(UUID id) throws ResourceNotFoundException {
-        Unidad unidad = unidadRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe la unidad con id " + id));
+    public UnidadExitDTO buscarUnidadPorId(Long id) throws ResourceNotFoundException{
+        Unidad unidadBuscada = unidadRepository.findById(id).orElse(null);
 
-        LOGGER.info("Unidad encontrada: {}", JsonPrinter.toString(unidad));
-        return modelMapper.map(unidad, UnidadExitDTO.class);
-    }
-
-    @Override
-    public UnidadExitDTO actualizarUnidad(UnidadModificationDTO unidad) throws ResourceNotFoundException, BadRequestException {
-        Unidad existente = unidadRepository.findById(unidad.getUnidadId())
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la unidad con id " + unidad.getUnidadId()));
-
-        LOGGER.info("Unidad antes de actualizar: {}", JsonPrinter.toString(existente));
-        LOGGER.info("Datos de actualización: {}", JsonPrinter.toString(unidad));
-
-        if (unidad.getNombre() != null && !unidad.getNombre().equalsIgnoreCase(existente.getNombre())) {
-            if (unidadRepository.findByNombre(unidad.getNombre()).isPresent()) {
-                throw new BadRequestException("El nombre ya está en uso por otra unidad");
-            }
-            existente.setNombre(unidad.getNombre());
+        UnidadExitDTO UnidadExitDTO = null;
+        if (unidadBuscada != null) {
+            UnidadExitDTO = modelMapper.map(unidadBuscada, UnidadExitDTO.class);
+            LOGGER.info("Recurso encontrado: {}", UnidadExitDTO);
+        } else {
+            LOGGER.error("El id no se encuentra registrado en la base de datos");
+            throw new ResourceNotFoundException("El id no se encuentra registrado en la base de datos");
         }
 
-        if (unidad.getDescripcion() != null) existente.setDescripcion(unidad.getDescripcion());
-        if (unidad.getHorarioGlobal() != null) existente.setHorarioGlobal(unidad.getHorarioGlobal());
-        if (unidad.getTiempoMinimoMinutos() != null)
-            existente.setTiempoMinimoMinutos(unidad.getTiempoMinimoMinutos());
-
-        Unidad actualizada = unidadRepository.save(existente);
-        LOGGER.info("Unidad actualizada: {}", JsonPrinter.toString(actualizada));
-
-        return modelMapper.map(actualizada, UnidadExitDTO.class);
+        return UnidadExitDTO;
     }
 
     @Override
-    public UnidadExitDTO eliminarUnidad(UUID id) throws ResourceNotFoundException {
-        Unidad unidad = unidadRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe la unidad con id " + id));
+    public UnidadExitDTO actualizarUnidad(UnidadModificationDTO unidad) throws ResourceNotFoundException,BadRequestException {
+        Unidad unidadComprobacion = unidadRepository.findById(unidad.getId()).orElse(null);
 
-        unidadRepository.deleteById(id);
-        LOGGER.warn("Unidad eliminada: {}", JsonPrinter.toString(unidad));
-        return modelMapper.map(unidad, UnidadExitDTO.class);
+        UnidadExitDTO UnidadExitDTO = null;
+
+        LOGGER.info("Unidad modificacion entrada: {}", JsonPrinter.toString(unidad));
+
+        List<Dia> listaDias = new ArrayList<Dia>();
+
+        if(unidadComprobacion!=null){
+
+            for(Long idDia:unidad.getDiasDisponibles()){
+                listaDias.add(diaRepository.findById(idDia).orElse(null));
+            }
+            Unidad unidadGuardar = modelMapper.map(unidad,Unidad.class);
+
+            unidadGuardar.setDiasDisponibles(listaDias);
+
+            UnidadExitDTO = modelMapper.map(unidadRepository.save(unidadGuardar),UnidadExitDTO.class);
+        }
+        else{
+            throw new ResourceNotFoundException("La unidad no existe");
+        }
+
+        LOGGER.info("Unidad actualizada: {}", JsonPrinter.toString(UnidadExitDTO));
+        return UnidadExitDTO;
+    }
+
+    @Override
+    public UnidadExitDTO eliminarUnidad(Long id) throws ResourceNotFoundException {
+        UnidadExitDTO unidadAEliminar = null;
+        unidadAEliminar = buscarUnidadPorId(id);
+        if (unidadAEliminar != null) {
+            unidadRepository.deleteById(id);
+            LOGGER.warn("Se ha eliminado la unidad con id: {}", id);
+        } else {
+            LOGGER.error("No se ha encontrado el recurso con id {}", id);
+            throw new ResourceNotFoundException("No se ha encontrado el recurso con id " + id);
+        }
+        return unidadAEliminar;
     }
 
     @PostConstruct
     private void configureMapping() {
         modelMapper.typeMap(UnidadRegisterDTO.class, Unidad.class);
         modelMapper.typeMap(Unidad.class, UnidadExitDTO.class);
-        modelMapper.typeMap(UnidadModificationDTO.class, Unidad.class);
+        modelMapper.typeMap(UnidadModificationDTO.class,Unidad.class);
     }
+
 }
