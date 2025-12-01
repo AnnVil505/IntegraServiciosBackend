@@ -1,27 +1,36 @@
 package IntegraServiciosBackend.service.imp;
 
 import IntegraServiciosBackend.dto.register.ReservaRegisterDTO;
+import IntegraServiciosBackend.dto.modification.ReservaModificationDTO;
 import IntegraServiciosBackend.dto.exit.ReservaExitDTO;
-import IntegraServiciosBackend.entity.Reserva;
-import IntegraServiciosBackend.entity.Recurso;
-import IntegraServiciosBackend.entity.Usuario;
+import IntegraServiciosBackend.dto.exit.RecursoExitDTO;
+import IntegraServiciosBackend.dto.exit.UnidadExitDTO;
+import IntegraServiciosBackend.dto.exit.UsuarioExitDTO;
+import IntegraServiciosBackend.entity.*;
 import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
-import IntegraServiciosBackend.repository.ReservaRepository;
 import IntegraServiciosBackend.repository.RecursoRepository;
+import IntegraServiciosBackend.repository.ReservaRepository;
+import IntegraServiciosBackend.repository.UnidadRepository;
 import IntegraServiciosBackend.repository.UsuarioRepository;
 import IntegraServiciosBackend.service.IReservaService;
 import IntegraServiciosBackend.utils.JsonPrinter;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
+@Getter
+@Setter
 @AllArgsConstructor
 @Service
 public class ReservaService implements IReservaService {
@@ -30,61 +39,127 @@ public class ReservaService implements IReservaService {
     private final ReservaRepository reservaRepository;
     private final RecursoRepository recursoRepository;
     private final UsuarioRepository usuarioRepository;
-    private final ModelMapper modelMapper;
+    private final UnidadRepository unidadRepository;
+    private final UnidadService unidadService;
+    private ModelMapper modelMapper;
 
     @Override
-    public ReservaExitDTO crearReserva(ReservaRegisterDTO dto) throws BadRequestException, ResourceNotFoundException {
-        Recurso recurso = recursoRepository.findById(dto.getRecursoId())
-                .orElseThrow(() -> new ResourceNotFoundException("No existe el recurso con id " + dto.getRecursoId()));
+    public Object registrarReserva(ReservaRegisterDTO reserva) throws BadRequestException {
+        LOGGER.info("ReservaRegisterDTO: " + JsonPrinter.toString(reserva));
 
-        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario con id " + dto.getUsuarioId()));
+        Recurso recursoReserva = recursoRepository.findById(reserva.getIdRecurso()).orElse(null);
+        Usuario usuarioReserva = usuarioRepository.findById(reserva.getIdUsuario()).orElse(null);
 
-        List<Reserva> existentes = reservaRepository.findByRecurso_RecursoIdAndFecha(dto.getRecursoId(), dto.getFecha());
-        boolean hayConflicto = existentes.stream().anyMatch(r ->
-                dto.getInicio().isBefore(r.getFin()) && dto.getFin().isAfter(r.getInicio()));
-
-        if (hayConflicto)
-            throw new BadRequestException("El recurso ya está reservado en ese horario.");
-
-        Reserva nueva = modelMapper.map(dto, Reserva.class);
-        nueva.setEstado("pendiente");
-        nueva.setRecurso(recurso);
-        nueva.setUsuario(usuario);
-
-        Reserva guardada = reservaRepository.save(nueva);
-        LOGGER.info("Reserva creada: {}", JsonPrinter.toString(guardada));
-
-        return modelMapper.map(guardada, ReservaExitDTO.class);
-    }
-
-    @Override
-    public List<ReservaExitDTO> listarReservas() {
-        return reservaRepository.findAll().stream()
-                .map(r -> modelMapper.map(r, ReservaExitDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public ReservaExitDTO buscarPorId(UUID id) throws ResourceNotFoundException {
-        Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva con id " + id));
-        return modelMapper.map(reserva, ReservaExitDTO.class);
-    }
-
-    @Override
-    public ReservaExitDTO cancelarReserva(UUID id) throws ResourceNotFoundException, BadRequestException {
-        Reserva reserva = reservaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva con id " + id));
-
-        if (!"pendiente".equalsIgnoreCase(reserva.getEstado())) {
-            throw new BadRequestException("Solo las reservas pendientes pueden cancelarse.");
+        if(recursoReserva==null){
+            return "El recurso no existe";
+        }
+        if(usuarioReserva==null){
+            return "El usuario no existe";
         }
 
-        reserva.setEstado("cancelada");
-        Reserva actualizada = reservaRepository.save(reserva);
-        LOGGER.warn("Reserva cancelada: {}", JsonPrinter.toString(actualizada));
 
-        return modelMapper.map(actualizada, ReservaExitDTO.class);
+        Reserva reservaEntidad = modelMapper.map(reserva,Reserva.class);
+        Reserva reservaGuardada = reservaRepository.save(reservaEntidad);
+
+        ReservaExitDTO reservaexit = modelMapper.map(reservaGuardada,ReservaExitDTO.class);
+        reservaexit.setUsuario(modelMapper.map(usuarioReserva, UsuarioExitDTO.class));
+        reservaexit.setRecurso(modelMapper.map(recursoReserva,RecursoExitDTO.class));
+
+
+        return reservaexit;
+    }
+
+    @Override
+    public ReservaExitDTO actualizarReserva(ReservaModificationDTO ReservaModificationDTO) throws ResourceNotFoundException{
+        LOGGER.info("ReservaModificationDTO: " + JsonPrinter.toString(ReservaModificationDTO));
+
+        Recurso recursoReserva = recursoRepository.findById(ReservaModificationDTO.getIdRecurso()).orElse(null);
+        Usuario usuarioReserva = usuarioRepository.findById(ReservaModificationDTO.getIdUsuario()).orElse(null);
+
+        if(recursoReserva==null){
+            throw new ResourceNotFoundException("El recurso no existe");
+        }
+        if(usuarioReserva==null){
+            throw new ResourceNotFoundException("El usuario no existe");
+        }
+
+        Reserva reservaAActualizar = modelMapper.map(ReservaModificationDTO,Reserva.class);
+        reservaAActualizar.setUsuario(usuarioReserva);
+        reservaAActualizar.setRecurso(recursoReserva);
+
+        return modelMapper.map(reservaRepository.save(reservaAActualizar),ReservaExitDTO.class);
+    }
+
+
+    @Override
+    public List<ReservaExitDTO> listarReservas() throws BadRequestException {
+        List<ReservaExitDTO> reservas = reservaRepository.findAll().stream()
+                .map(r -> modelMapper.map(r, ReservaExitDTO.class)).toList();
+
+        for (ReservaExitDTO reserva: reservas) {
+            reserva.setRecurso(modelMapper.map(recursoRepository.findById(reserva.getRecurso().getId()).orElse(null),RecursoExitDTO.class));
+            reserva.setUsuario(modelMapper.map(usuarioRepository.findById(reserva.getUsuario().getId()).orElse(null),UsuarioExitDTO.class));
+        }
+
+        LOGGER.info("Listado de todas las reservas: {}", JsonPrinter.toString(reservas));
+
+        return reservas;
+    }
+
+    @Override
+    public List<ReservaExitDTO> listarReservasPorUsuario(Long id) {
+        List<ReservaExitDTO> reservas = reservaRepository.findByUsuario_Id(id).stream()
+                .map(r -> modelMapper.map(r, ReservaExitDTO.class)).toList();
+
+        LOGGER.info("Reservas por Usuario");
+        LOGGER.info(JsonPrinter.toString(reservas));
+        return reservas;
+    }
+
+    @Override
+    public List<ReservaExitDTO> listarReservasPorRecurso(Long id) {
+        List<ReservaExitDTO> reservas = reservaRepository.findByRecurso_Id(id).stream()
+                .map(r -> modelMapper.map(r, ReservaExitDTO.class)).toList();
+
+        LOGGER.info("Reserva por recurso");
+        LOGGER.info(JsonPrinter.toString(reservas));
+        return reservas;
+    }
+
+    @Override
+    public ReservaExitDTO buscarReservaPorId(Long id) throws ResourceNotFoundException{
+        Reserva reservaBuscada = reservaRepository.findById(id).orElse(null);
+
+        ReservaExitDTO ReservaExitDTO = null;
+        if (reservaBuscada != null) {
+            ReservaExitDTO = modelMapper.map(reservaBuscada, ReservaExitDTO.class);
+            LOGGER.info("Reserva encontrado: {}", ReservaExitDTO);
+        } else {
+            LOGGER.error("El id no se encuentra registrado en la base de datos");
+            throw new ResourceNotFoundException("El id no se encuentra registrado en la base de datos");
+        }
+
+        return ReservaExitDTO;
+    }
+
+
+    @Override
+    public ReservaExitDTO cancelarReserva(Long id) throws ResourceNotFoundException {
+        Reserva reservaACancelar = reservaRepository.findById(id).orElse(null);
+        if (reservaACancelar != null) {
+            reservaACancelar.setEstado("Cancelada");
+            reservaRepository.save(reservaACancelar);
+            LOGGER.warn("Se ha cancelado la reserva con id: {}", id);
+        } else {
+            LOGGER.error("No se ha encontrado la reserva con id {}", id);
+            throw new ResourceNotFoundException("No se ha encontrado la reserva con id " + id);
+        }
+        return modelMapper.map(reservaACancelar,ReservaExitDTO.class);
+    }
+
+    @PostConstruct
+    private void configureMapping() {
+        modelMapper.typeMap(ReservaService.class, Reserva.class);
+        modelMapper.typeMap(Reserva.class, ReservaExitDTO.class);
     }
 }

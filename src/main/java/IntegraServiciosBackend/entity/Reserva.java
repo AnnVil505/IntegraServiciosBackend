@@ -1,42 +1,42 @@
 package IntegraServiciosBackend.entity;
 
-import java.time.*;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
-import lombok.*;
+import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "reserva", schema = "integra")
+@Table(name = "reserva")
 public class Reserva {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "reserva_id", columnDefinition = "UUID")
-    private UUID reservaId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String estado;
+    private String horaInicio;
+    private String horaFin;
+    private LocalDate fechaReserva;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaPrestamo;
+    private LocalDateTime fechaDevolucion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recurso_id", nullable = false)
-    private Recurso recurso;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    private LocalDate fecha;
+    @ManyToOne
+    @JoinColumn(name = "recurso_id", nullable = false)
+    private Recurso recurso;
 
-    private LocalTime inicio;
-
-    private LocalTime fin;
-
-    @Column(nullable = false)
-    private String estado; // pendiente, confirmada, cancelada, finalizada
-
-    private String comentario;
-
-    @Column(name = "creado_en", columnDefinition = "timestamp default now()")
-    private LocalDateTime creadoEn;
 }

@@ -1,16 +1,21 @@
 package IntegraServiciosBackend.service;
 
 import IntegraServiciosBackend.dto.register.ReservaRegisterDTO;
+import IntegraServiciosBackend.dto.modification.ReservaModificationDTO;
 import IntegraServiciosBackend.dto.exit.ReservaExitDTO;
 import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface IReservaService {
-    ReservaExitDTO crearReserva(ReservaRegisterDTO reserva) throws BadRequestException, ResourceNotFoundException;
-    List<ReservaExitDTO> listarReservas();
-    ReservaExitDTO buscarPorId(UUID id) throws ResourceNotFoundException;
-    ReservaExitDTO cancelarReserva(UUID id) throws ResourceNotFoundException, BadRequestException;
+
+    Object registrarReserva(ReservaRegisterDTO reserva) throws BadRequestException;
+    ReservaExitDTO actualizarReserva(ReservaModificationDTO ReservaModificationDTO) throws ResourceNotFoundException;
+    List<ReservaExitDTO> listarReservas() throws BadRequestException;
+    List<ReservaExitDTO> listarReservasPorUsuario(Long id);
+    List<ReservaExitDTO> listarReservasPorRecurso(Long id);
+    ReservaExitDTO buscarReservaPorId(Long id) throws ResourceNotFoundException;
+    ReservaExitDTO cancelarReserva(Long id) throws ResourceNotFoundException;
+
 }

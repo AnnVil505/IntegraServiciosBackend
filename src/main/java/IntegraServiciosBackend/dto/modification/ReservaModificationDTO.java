@@ -1,4 +1,4 @@
-package IntegraServiciosBackend.dto.register;
+package IntegraServiciosBackend.dto.modification;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -9,12 +9,11 @@ import lombok.Setter;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class ReservaRegisterDTO {
-
+public class ReservaModificationDTO {
+    @NotNull(message = "El ID de la reserva no puede ser nulo")
     private Long id;
 
     @NotNull(message = "El ID del recurso no puede ser nulo")
