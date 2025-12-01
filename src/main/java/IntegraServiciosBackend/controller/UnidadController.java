@@ -5,12 +5,14 @@ import IntegraServiciosBackend.dto.modification.UnidadModificationDTO;
 import IntegraServiciosBackend.dto.exit.UnidadExitDTO;
 import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
-import IntegraServiciosBackend.service.IUnidadService;
+import IntegraServiciosBackend.service.imp.UnidadService;
 import IntegraServiciosBackend.utils.JsonPrinter;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;

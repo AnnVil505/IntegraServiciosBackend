@@ -8,6 +8,7 @@ import IntegraServiciosBackend.entity.Dia;
 import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
 import IntegraServiciosBackend.repository.UnidadRepository;
+import IntegraServiciosBackend.repository.DiaRepository;
 import IntegraServiciosBackend.service.IUnidadService;
 import IntegraServiciosBackend.utils.JsonPrinter;
 import lombok.AllArgsConstructor;
