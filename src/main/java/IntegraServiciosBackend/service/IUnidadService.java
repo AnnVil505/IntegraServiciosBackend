@@ -7,13 +7,12 @@ import IntegraServiciosBackend.exceptions.BadRequestException;
 import IntegraServiciosBackend.exceptions.ResourceNotFoundException;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface IUnidadService {
     UnidadExitDTO registrarUnidad(UnidadRegisterDTO unidad) throws BadRequestException;
     List<UnidadExitDTO> listarUnidades();
-    UnidadExitDTO buscarUnidadPorId(UUID id) throws ResourceNotFoundException;
+    UnidadExitDTO buscarUnidadPorId(Long id) throws ResourceNotFoundException;
     UnidadExitDTO actualizarUnidad(UnidadModificationDTO unidad) throws ResourceNotFoundException, BadRequestException;
-    UnidadExitDTO eliminarUnidad(UUID id) throws ResourceNotFoundException;
+    UnidadExitDTO eliminarUnidad(Long id) throws ResourceNotFoundException;
 }
 

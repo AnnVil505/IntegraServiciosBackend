@@ -1,37 +1,37 @@
 package IntegraServiciosBackend.entity;
-
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import jakarta.persistence.*;
-import lombok.*;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "recurso", schema = "integra")
+@Table(name = "recurso")
 public class Recurso {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "recurso_id", columnDefinition = "UUID")
-    private UUID recursoId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_id", nullable = false)
-    private TipoRecurso tipoRecurso;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String nombre;
-
+    private String tipo;
     private String descripcion;
+    private String imageUrl;
 
-    private String ubicacion;
+    @ManyToOne
+    @JoinColumn(name = "unidad_id") // Nombre de la columna de clave foránea
+    private Unidad unidad;
 
-    @Column(name = "foto_url")
-    private String fotoUrl;
+    @ManyToMany
+    @JoinTable(
+            name = "recurso_horario", // Nombre de la tabla intermedia
+            joinColumns = @JoinColumn(name = "recurso_id"),
+            inverseJoinColumns = @JoinColumn(name = "horario_id")
+    )
+    private List<HorarioDisponibleRecurso> horarioDisponible;
 
-    private boolean activo;
-
-    @Column(name = "creado_en", columnDefinition = "timestamp default now()")
-    private java.time.LocalDateTime creadoEn;
 }

@@ -13,71 +13,50 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("public/unidad")
-@AllArgsConstructor
+@RequestMapping("/unidades")
 public class UnidadController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UnidadController.class);
-    private final IUnidadService unidadService;
+    private final UnidadService unidadService;
 
-    /**
-     * Registrar una nueva unidad
-     */
-    @PostMapping
-    public ResponseEntity<UnidadExitDTO> registrarUnidad(@RequestBody UnidadRegisterDTO UnidadRegisterDTO)
-            throws BadRequestException {
-        LOGGER.info("Solicitud de registro recibida: {}", JsonPrinter.toString(UnidadRegisterDTO));
-        UnidadExitDTO unidadCreada = unidadService.registrarUnidad(UnidadRegisterDTO);
-        LOGGER.info("Unidad registrada correctamente: {}", JsonPrinter.toString(unidadCreada));
-        return ResponseEntity.ok(unidadCreada);
+    public UnidadController(UnidadService unidadService) {
+        this.unidadService = unidadService;
     }
 
-    /**
-     * Listar todas las unidades
-     */
-    @GetMapping
-    public ResponseEntity<List<UnidadExitDTO>> listarUnidades() {
-        List<UnidadExitDTO> unidades = unidadService.listarUnidades();
-        LOGGER.info("Se retornaron {} unidades", unidades.size());
-        return ResponseEntity.ok(unidades);
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PostMapping("/registrar")
+    public ResponseEntity<?> registrarUnidad(@RequestBody UnidadRegisterDTO unidad) throws BadRequestException {
+        LOGGER.info("Unidad: "+ JsonPrinter.toString(unidad));
+        return new ResponseEntity<>(unidadService.registrarUnidad(unidad), HttpStatus.OK);
+        //return new ResponseEntity<>("Hecho", HttpStatus.OK);
     }
 
-    /**
-     * Buscar una unidad por su ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<UnidadExitDTO> buscarPorId(@PathVariable UUID id)
-            throws ResourceNotFoundException {
-        LOGGER.info("Buscando unidad con id: {}", id);
-        UnidadExitDTO unidad = unidadService.buscarUnidadPorId(id);
-        return ResponseEntity.ok(unidad);
+    @PutMapping("actualizar")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<UnidadExitDTO> actualizarUnidad(@Valid @RequestBody UnidadModificationDTO unidad) throws ResourceNotFoundException,BadRequestException {
+        return new ResponseEntity<>(unidadService.actualizarUnidad(unidad), HttpStatus.OK);
     }
 
-    /**
-     * Actualizar una unidad existente
-     */
-    @PutMapping
-    public ResponseEntity<UnidadExitDTO> actualizarUnidad(@RequestBody UnidadModificationDTO UnidadModificationDTO)
-            throws ResourceNotFoundException, BadRequestException {
-        LOGGER.info("Solicitud de actualización recibida: {}", JsonPrinter.toString(UnidadModificationDTO));
-        UnidadExitDTO actualizada = unidadService.actualizarUnidad(UnidadModificationDTO);
-        LOGGER.info("Unidad actualizada correctamente: {}", JsonPrinter.toString(actualizada));
-        return ResponseEntity.ok(actualizada);
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping("/listar")
+    public ResponseEntity<List<UnidadExitDTO>> listarUnidades() throws BadRequestException {
+        return new ResponseEntity<>(unidadService.listarUnidades(), HttpStatus.OK);
+        //return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
-    /**
-     * Eliminar una unidad por ID
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<UnidadExitDTO> eliminarUnidad(@PathVariable UUID id)
-            throws ResourceNotFoundException {
-        LOGGER.warn("Solicitud de eliminación para unidad con id: {}", id);
-        UnidadExitDTO eliminada = unidadService.eliminarUnidad(id);
-        LOGGER.warn("Unidad eliminada correctamente: {}", JsonPrinter.toString(eliminada));
-        return ResponseEntity.ok(eliminada);
+    @GetMapping("{id}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','ALIADO')")
+    public ResponseEntity<UnidadExitDTO> obtenerUnidadPorId(@PathVariable Long id) throws ResourceNotFoundException{
+        return new ResponseEntity<>(unidadService.buscarUnidadPorId(id), HttpStatus.OK);
+    }
+
+    @DeleteMapping("eliminar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<?> eliminarUnidad(@PathVariable Long id) throws ResourceNotFoundException {
+        return new ResponseEntity<>(unidadService.eliminarUnidad(id), HttpStatus.OK);
     }
 }
