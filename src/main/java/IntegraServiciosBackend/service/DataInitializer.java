@@ -4,6 +4,7 @@ import IntegraServiciosBackend.entity.Dia;
 import IntegraServiciosBackend.entity.Usuario;
 import IntegraServiciosBackend.repository.DiaRepository;
 import IntegraServiciosBackend.repository.UsuarioRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -18,11 +19,12 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private DiaRepository diaRepository;
 
-    // Dependencias añadidas para la inicialización de Usuarios
     @Autowired
     private UsuarioRepository usuarioRepository; 
-    
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+    
     @Override
     public void run(String... args) throws Exception {
         // 1. Inicializar Días
@@ -58,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
             ana.setCedula(1001234567);
             ana.setRol(1); // Usuario normal
             ana.setFechaRegistro(LocalDateTime.of(2024, 1, 10, 10, 0, 0));
-            ana.setContraseña("123AP");
+            ana.setContraseña(passwordEncoder.encode("123456AP"));
             usuarioRepository.save(ana);
             System.out.println("Data Seeding: Usuario 'Ana Pérez' (ana.perez@user.com)");
         }
@@ -71,7 +73,7 @@ public class DataInitializer implements CommandLineRunner {
             luis.setCedula(1009876543);
             luis.setRol(1); // Usuario normal
             luis.setFechaRegistro(LocalDateTime.of(2024, 3, 20, 12, 30, 0));
-            luis.setContraseña("123LG"); 
+            luis.setContraseña(passwordEncoder.encode("123456LG"));
             usuarioRepository.save(luis);
             System.out.println("Data Seeding: Usuario 'Luis Gómez' (luis.gomez@user.com)");
         }
@@ -84,7 +86,7 @@ public class DataInitializer implements CommandLineRunner {
             maria.setCedula(1005555555);
             maria.setRol(2); // Empleado
             maria.setFechaRegistro(LocalDateTime.of(2024, 4, 1, 8, 0, 0));
-            maria.setContraseña("123ML");
+            maria.setContraseña(passwordEncoder.encode("123456ML"));
             usuarioRepository.save(maria);
             System.out.println("Data Seeding: Usuario 'María López' (maria.lopez@ud.edu)");
         }
