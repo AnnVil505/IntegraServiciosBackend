@@ -36,7 +36,7 @@ public class UnidadService implements IUnidadService {
     private ModelMapper modelMapper;
 
     @Override
-    public UnidadExitDTO registrarUnidad(UnidadRegisterDTO unidad) throws BadRequestException {
+    public UnidadExitDTO registrarUnidad(UnidadRegisterDTO unidad) {
         // Convertir DTO a entidad
         Unidad unidadEntidad = modelMapper.map(unidad,Unidad.class);
 
@@ -75,7 +75,7 @@ public class UnidadService implements IUnidadService {
     }
 
     @Override
-    public UnidadExitDTO actualizarUnidad(UnidadModificationDTO unidad) throws ResourceNotFoundException,BadRequestException {
+    public UnidadExitDTO actualizarUnidad(UnidadModificationDTO unidad) throws ResourceNotFoundException{
         Unidad unidadComprobacion = unidadRepository.findById(unidad.getId()).orElse(null);
 
         UnidadExitDTO UnidadExitDTO = null;

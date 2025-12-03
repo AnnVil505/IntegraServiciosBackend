@@ -40,7 +40,7 @@ public class RecursoService implements IRecursoService {
 
 
     @Override
-    public Object registrarRecurso(RecursoRegisterDTO recurso) throws BadRequestException {
+    public Object registrarRecurso(RecursoRegisterDTO recurso) {
         Unidad unidadRecurso = unidadRepository.findById(recurso.getUnidad()).orElse(null);
 
         if(unidadRecurso == null){
@@ -86,7 +86,7 @@ public class RecursoService implements IRecursoService {
 
 
     @Override
-    public List<RecursoExitDTO> listarRecursos() throws BadRequestException{
+    public List<RecursoExitDTO> listarRecursos() {
         List<RecursoExitDTO> recursos = recursoRepository.findAll().stream()
                 .map(r -> modelMapper.map(r, RecursoExitDTO.class)).toList();
 
@@ -125,7 +125,7 @@ public class RecursoService implements IRecursoService {
     }
 
     @Override
-    public RecursoExitDTO actualizarRecurso(RecursoModificationDTO recursoModificado) throws ResourceNotFoundException,BadRequestException{
+    public RecursoExitDTO actualizarRecurso(RecursoModificationDTO recursoModificado) throws ResourceNotFoundException{
 
         //Comprobar si el recurso existe
         Recurso recursoComprobacion = recursoRepository.findById(recursoModificado.getId()).orElse(null);

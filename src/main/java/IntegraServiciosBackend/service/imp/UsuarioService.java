@@ -35,7 +35,7 @@ public class UsuarioService implements IUsuarioService {
     private ModelMapper modelMapper;
 
     @Override
-    public Object registrarUsuario(UsuarioRegisterDTO usuario) throws BadRequestException{
+    public Object registrarUsuario(UsuarioRegisterDTO usuario) {
         //convertimos mediante el mapper de dtoRegister a entidad
         LOGGER.info("UsuarioRegisterDTO: " + JsonPrinter.toString(usuario));
 
@@ -138,7 +138,7 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public UsuarioExitDTO actualizarUsuario(UsuarioModificationDTO usuario) throws ResourceNotFoundException,BadRequestException {
+    public UsuarioExitDTO actualizarUsuario(UsuarioModificationDTO usuario) throws ResourceNotFoundException {
         Usuario usuarioAActualizar = modelMapper.map(buscarUsuarioPorId(usuario.getId()),Usuario.class);
 
         if(usuarioAActualizar==null){

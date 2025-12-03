@@ -23,9 +23,9 @@ import java.util.List;
 public class UnidadController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UnidadController.class);
-    private final UnidadService unidadService;
+    private final  UnidadService unidadService;
 
-    public UnidadController(UnidadService unidadService) {
+    public UnidadController( UnidadService unidadService) {
         this.unidadService = unidadService;
     }
 
